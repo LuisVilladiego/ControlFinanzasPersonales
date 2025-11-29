@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # FINANZAS MALU
 
 Sistema de gestión de finanzas personales desarrollado con Flask. Permite registrar ingresos y egresos, visualizar estadísticas, crear y seguir metas financieras, programar ahorros, gestionar deudas fijas, y recibir recordatorios automáticos de fechas de pago.
@@ -444,3 +445,7 @@ Para información completa sobre la entrega, instalación y despliegue, consulta
 
 Para reportar problemas o solicitar características, por favor abre un issue en el repositorio del proyecto.
 
+=======
+# ControlFinanzasPersonales
+software web para gestionar finanzas personales
+>>>>>>> 49d7d5db8fd7d19bbb65bfdbdc9c434c65ea3d86
