@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block page_title %}Recordatorios de Pago{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Recordatorios de Pago</h2>
+    <div>
+        <a href="{{ url_for('recordatorios.listar_recordatorios', enviados='false') }}" 
+           class="btn btn-outline-warning {% if not enviados %}active{% endif %}">
+            Pendientes
+        </a>
+        <a href="{{ url_for('recordatorios.listar_recordatorios', enviados='true') }}" 
+           class="btn btn-outline-success {% if enviados %}active{% endif %}">
+            Enviados
+        </a>
+        <a href="{{ url_for('recordatorios.nuevo_recordatorio') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nuevo Recordatorio
+        </a>
+    </div>
+</div>
+
+{% if recordatorios %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Descripción</th>
+                        <th>Monto</th>
+                        <th>Fecha de Pago</th>
+                        <th>Fecha Recordatorio</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for recordatorio in recordatorios %}
+                    <tr>
+                        <td><strong>{{ recordatorio.titulo }}</strong></td>
+                        <td>{{ recordatorio.descripcion or '-' }}</td>
+                        <td class="fw-bold">${{ "{:,.2f}".format(recordatorio.monto) }}</td>
+                        <td>{{ recordatorio.fecha_pago.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ recordatorio.fecha_recordatorio.strftime('%d/%m/%Y') }}</td>
+                        <td>
+                            {% if recordatorio.enviado %}
+                            <span class="badge bg-success">Enviado</span>
+                            {% else %}
+                            <span class="badge bg-warning">Pendiente</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <a href="{{ url_for('recordatorios.editar_recordatorio', id=recordatorio.id) }}" 
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('recordatorios.eliminar_recordatorio', id=recordatorio.id) }}" 
+                                  class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar este recordatorio?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-bell" style="font-size: 3rem; color: #ccc;"></i>
+        <p class="text-muted mt-3">
+            {% if enviados %}
+            No hay recordatorios enviados
+            {% else %}
+            No hay recordatorios pendientes
+            {% endif %}
+        </p>
+        {% if not enviados %}
+        <a href="{{ url_for('recordatorios.nuevo_recordatorio') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Crear Primer Recordatorio
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+

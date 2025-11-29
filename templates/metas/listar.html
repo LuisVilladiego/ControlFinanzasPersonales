@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block page_title %}Metas Financieras{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Metas Financieras</h2>
+    <div>
+        <a href="{{ url_for('metas.listar_metas', completadas='false') }}" 
+           class="btn btn-outline-primary {% if not completadas %}active{% endif %}">
+            Activas
+        </a>
+        <a href="{{ url_for('metas.listar_metas', completadas='true') }}" 
+           class="btn btn-outline-success {% if completadas %}active{% endif %}">
+            Completadas
+        </a>
+        <a href="{{ url_for('metas.nueva_meta') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nueva Meta
+        </a>
+    </div>
+</div>
+
+{% if metas %}
+<div class="row">
+    {% for meta in metas %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ meta.titulo }}</h5>
+                {% if meta.descripcion %}
+                <p class="card-text text-muted">{{ meta.descripcion }}</p>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Progreso</span>
+                        <strong>${{ "{:,.2f}".format(meta.monto_actual) }} / ${{ "{:,.2f}".format(meta.monto_objetivo) }}</strong>
+                    </div>
+                    <div class="progress" style="height: 25px;">
+                        <div class="progress-bar {% if meta.completada %}bg-success{% else %}bg-primary{% endif %}" 
+                             role="progressbar" 
+                             style="width: {{ meta.porcentaje_completado() }}%"
+                             aria-valuenow="{{ meta.porcentaje_completado() }}" 
+                             aria-valuemin="0" aria-valuemax="100">
+                            {{ "%.1f"|format(meta.porcentaje_completado()) }}%
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <i class="bi bi-calendar-event"></i> 
+                        Fecha límite: {{ meta.fecha_limite.strftime('%d/%m/%Y') }}
+                    </small>
+                </div>
+                
+                {% if meta.completada %}
+                <span class="badge bg-success mb-2">Completada</span>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-transparent">
+                <div class="btn-group w-100" role="group">
+                    <a href="{{ url_for('metas.ver_meta', id=meta.id) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye"></i> Ver
+                    </a>
+                    <a href="{{ url_for('metas.editar_meta', id=meta.id) }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-pencil"></i> Editar
+                    </a>
+                    <form method="POST" action="{{ url_for('metas.eliminar_meta', id=meta.id) }}" 
+                          class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar esta meta?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-bullseye" style="font-size: 3rem; color: #ccc;"></i>
+        <p class="text-muted mt-3">
+            {% if completadas %}
+            No hay metas completadas
+            {% else %}
+            No hay metas activas
+            {% endif %}
+        </p>
+        {% if not completadas %}
+        <a href="{{ url_for('metas.nueva_meta') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Crear Primera Meta
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+

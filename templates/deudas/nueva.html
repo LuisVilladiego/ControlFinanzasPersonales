@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block page_title %}Nueva Deuda Fija{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Nueva Deuda Fija</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="titulo" class="form-label">Título *</label>
+                        <input type="text" class="form-control" id="titulo" name="titulo" 
+                               placeholder="Ej: Tarjeta de crédito, Préstamo bancario" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcion" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="descripcion" name="descripcion" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="monto" class="form-label">Monto Mensual *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" step="0.01" class="form-control" id="monto" name="monto" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="dia_pago" class="form-label">Día de Pago del Mes *</label>
+                        <input type="number" class="form-control" id="dia_pago" name="dia_pago" 
+                               min="1" max="31" value="15" required>
+                        <small class="form-text text-muted">Selecciona el día del mes en que realizas el pago (1-31)</small>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> 
+                        <strong>Nota:</strong> Recibirás una notificación por email 2 días antes de la fecha de pago. 
+                        Cuando marques la deuda como pagada, se registrará automáticamente como un egreso.
+                    </div>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('deudas.listar_deudas') }}" class="btn btn-secondary">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Crear Deuda Fija
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

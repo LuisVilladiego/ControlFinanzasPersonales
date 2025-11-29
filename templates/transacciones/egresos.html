@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block page_title %}Egresos{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Egresos</h2>
+    <a href="{{ url_for('transacciones.nuevo_egreso') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Nuevo Egreso
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if egresos.items %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Descripción</th>
+                        <th>Categoría</th>
+                        <th class="text-end">Monto</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for egreso in egresos.items %}
+                    <tr>
+                        <td>{{ egreso.fecha.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ egreso.descripcion }}</td>
+                        <td><span class="badge bg-danger">{{ egreso.categoria }}</span></td>
+                        <td class="text-end text-danger fw-bold">${{ "{:,.2f}".format(egreso.monto) }}</td>
+                        <td class="text-center">
+                            <a href="{{ url_for('transacciones.editar_egreso', id=egreso.id) }}" 
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('transacciones.eliminar_egreso', id=egreso.id) }}" 
+                                  class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar este egreso?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Paginación -->
+        <nav aria-label="Paginación de egresos">
+            <ul class="pagination justify-content-center">
+                {% if egresos.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ egresos.prev_num }}">Anterior</a>
+                </li>
+                {% endif %}
+                
+                {% for page_num in egresos.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                    {% if page_num %}
+                        {% if page_num == egresos.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">…</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if egresos.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ egresos.next_num }}">Siguiente</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+            <p class="text-muted mt-3">No hay egresos registrados</p>
+            <a href="{{ url_for('transacciones.nuevo_egreso') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Registrar Primer Egreso
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FINANZAS MALU{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --success-color: #1cc88a;
+            --info-color: #36b9cc;
+            --warning-color: #f6c23e;
+            --danger-color: #e74a3b;
+        }
+        body {
+            background-color: #f8f9fc;
+        }
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #4e73df 10%, #224abe 100%);
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 1rem;
+            margin: 0.25rem 0;
+            border-radius: 0.35rem;
+        }
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link i {
+            margin-right: 0.5rem;
+        }
+        .card {
+            border: none;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            margin-bottom: 1.5rem;
+        }
+        .card-header {
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+            font-weight: 600;
+        }
+        .stat-card {
+            border-left: 4px solid;
+        }
+        .stat-card.primary { border-left-color: var(--primary-color); }
+        .stat-card.success { border-left-color: var(--success-color); }
+        .stat-card.info { border-left-color: var(--info-color); }
+        .stat-card.warning { border-left-color: var(--warning-color); }
+        .stat-card.danger { border-left-color: var(--danger-color); }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if current_user.is_authenticated %}
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <div class="text-center text-white mb-4">
+                        <h4><i class="bi bi-wallet2"></i> FINANZAS MALU</h4>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'ingresos' in request.endpoint %}active{% endif %}" href="{{ url_for('transacciones.listar_ingresos') }}">
+                                <i class="bi bi-arrow-down-circle"></i> Ingresos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'egresos' in request.endpoint %}active{% endif %}" href="{{ url_for('transacciones.listar_egresos') }}">
+                                <i class="bi bi-arrow-up-circle"></i> Egresos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'metas' in request.endpoint %}active{% endif %}" href="{{ url_for('metas.listar_metas') }}">
+                                <i class="bi bi-bullseye"></i> Metas
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'ahorros' in request.endpoint %}active{% endif %}" href="{{ url_for('ahorros.listar_ahorros') }}">
+                                <i class="bi bi-piggy-bank"></i> Ahorros
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'recordatorios' in request.endpoint %}active{% endif %}" href="{{ url_for('recordatorios.listar_recordatorios') }}">
+                                <i class="bi bi-bell"></i> Recordatorios
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'deudas' in request.endpoint %}active{% endif %}" href="{{ url_for('deudas.listar_deudas') }}">
+                                <i class="bi bi-credit-card"></i> Deudas Fijas
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'estrategias' in request.endpoint %}active{% endif %}" href="{{ url_for('estrategias.estrategias_deuda') }}">
+                                <i class="bi bi-graph-up-arrow"></i> Estrategias de Deuda
+                            </a>
+                        </li>
+                    </ul>
+                    <hr class="text-white">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('auth.logout') }}">
+                                <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">{% block page_title %}Dashboard{% endblock %}</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <span class="text-muted me-3">
+                            <i class="bi bi-person-circle"></i> {{ current_user.nombre }}
+                        </span>
+                    </div>
+                </div>
+    {% endif %}
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+
+    {% if current_user.is_authenticated %}
+            </main>
+        </div>
+    </div>
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

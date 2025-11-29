@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block page_title %}Ingresos{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Ingresos</h2>
+    <a href="{{ url_for('transacciones.nuevo_ingreso') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Nuevo Ingreso
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if ingresos.items %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Descripción</th>
+                        <th>Categoría</th>
+                        <th class="text-end">Monto</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ingreso in ingresos.items %}
+                    <tr>
+                        <td>{{ ingreso.fecha.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ ingreso.descripcion }}</td>
+                        <td><span class="badge bg-primary">{{ ingreso.categoria }}</span></td>
+                        <td class="text-end text-success fw-bold">${{ "{:,.2f}".format(ingreso.monto) }}</td>
+                        <td class="text-center">
+                            <a href="{{ url_for('transacciones.editar_ingreso', id=ingreso.id) }}" 
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('transacciones.eliminar_ingreso', id=ingreso.id) }}" 
+                                  class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar este ingreso?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Paginación -->
+        <nav aria-label="Paginación de ingresos">
+            <ul class="pagination justify-content-center">
+                {% if ingresos.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ ingresos.prev_num }}">Anterior</a>
+                </li>
+                {% endif %}
+                
+                {% for page_num in ingresos.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                    {% if page_num %}
+                        {% if page_num == ingresos.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">…</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if ingresos.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ ingresos.next_num }}">Siguiente</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+            <p class="text-muted mt-3">No hay ingresos registrados</p>
+            <a href="{{ url_for('transacciones.nuevo_ingreso') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Registrar Primer Ingreso
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+

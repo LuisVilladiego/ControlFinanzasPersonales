@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+
+{% block page_title %}Estrategias de Deuda{% endblock %}
+
+{% block extra_css %}
+<style>
+    .strategy-card {
+        border-left: 4px solid;
+        transition: transform 0.2s;
+    }
+    .strategy-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.25rem 1.5rem 0 rgba(58, 59, 69, 0.2);
+    }
+    .strategy-avalancha {
+        border-left-color: #e74a3b;
+    }
+    .strategy-bola-nieve {
+        border-left-color: #1cc88a;
+    }
+    .comparison-badge {
+        font-size: 1.1rem;
+        padding: 0.75rem 1.5rem;
+    }
+    .debt-input-group {
+        background-color: #f8f9fc;
+        padding: 1rem;
+        border-radius: 0.35rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="bi bi-graph-up-arrow"></i> Estrategias de Pago de Deudas</h2>
+        <p class="text-muted">Compara diferentes métodos para pagar tus deudas y encuentra la estrategia más eficiente.</p>
+    </div>
+</div>
+
+{% if not deudas %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-credit-card" style="font-size: 3rem; color: #ccc;"></i>
+        <p class="text-muted mt-3">No tienes deudas activas registradas.</p>
+        <a href="{{ url_for('deudas.nueva_deuda') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Crear Primera Deuda
+        </a>
+    </div>
+</div>
+{% else %}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-calculator"></i> Configurar Estrategia</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-4">
+                        <label for="pago_extra" class="form-label fw-bold">
+                            Pago Extra Mensual Disponible
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" step="0.01" class="form-control" 
+                                   id="pago_extra" name="pago_extra" 
+                                   value="{{ request.form.get('pago_extra', '0') }}" 
+                                   placeholder="0.00" min="0">
+                        </div>
+                        <small class="form-text text-muted">
+                            Ingresa el monto adicional que puedes destinar mensualmente para pagar deudas.
+                        </small>
+                    </div>
+
+                    <hr>
+
+                    <h6 class="mb-3"><i class="bi bi-list-ul"></i> Información de Deudas</h6>
+                    <p class="text-muted small mb-3">
+                        Para cada deuda, ingresa el saldo pendiente, la tasa de interés anual y el pago mínimo mensual.
+                    </p>
+
+                    {% for deuda in deudas %}
+                    <div class="debt-input-group">
+                        <h6 class="mb-3">
+                            <i class="bi bi-credit-card"></i> {{ deuda.titulo }}
+                            {% if deuda.descripcion %}
+                            <small class="text-muted">- {{ deuda.descripcion }}</small>
+                            {% endif %}
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="saldo_{{ deuda.id }}" class="form-label">Saldo Pendiente *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" step="0.01" class="form-control" 
+                                           id="saldo_{{ deuda.id }}" name="saldo_{{ deuda.id }}" 
+                                           value="{{ request.form.get('saldo_' + deuda.id|string, '') }}" 
+                                           placeholder="0.00" min="0" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="tasa_{{ deuda.id }}" class="form-label">Tasa de Interés Anual (%) *</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.01" class="form-control" 
+                                           id="tasa_{{ deuda.id }}" name="tasa_{{ deuda.id }}" 
+                                           value="{{ request.form.get('tasa_' + deuda.id|string, '') }}" 
+                                           placeholder="0.00" min="0" max="100" required>
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="pago_min_{{ deuda.id }}" class="form-label">Pago Mínimo Mensual *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" step="0.01" class="form-control" 
+                                           id="pago_min_{{ deuda.id }}" name="pago_min_{{ deuda.id }}" 
+                                           value="{{ request.form.get('pago_min_' + deuda.id|string, deuda.monto) }}" 
+                                           placeholder="{{ deuda.monto }}" min="0" required>
+                                </div>
+                                <small class="form-text text-muted">
+                                    Valor por defecto: ${{ "{:,.2f}".format(deuda.monto) }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-calculator"></i> Calcular Estrategias
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if resultados %}
+<div class="row mt-4">
+    <div class="col-12 mb-4">
+        <div class="alert alert-info">
+            <h5 class="alert-heading"><i class="bi bi-info-circle"></i> Comparación de Estrategias</h5>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>Método Avalancha:</strong> {{ resultados.avalancha.meses }} meses
+                    <br>
+                    <strong>Total en intereses:</strong> ${{ "{:,.2f}".format(resultados.avalancha.total_intereses) }}
+                </div>
+                <div class="col-md-6">
+                    <strong>Método Bola de Nieve:</strong> {{ resultados.bola_nieve.meses }} meses
+                    <br>
+                    <strong>Total en intereses:</strong> ${{ "{:,.2f}".format(resultados.bola_nieve.total_intereses) }}
+                </div>
+            </div>
+            {% if resultados.ahorro > 0 %}
+            <hr>
+            <div class="text-center">
+                <span class="badge bg-success comparison-badge">
+                    <i class="bi bi-trophy"></i> El método Avalancha te ahorra 
+                    ${{ "{:,.2f}".format(resultados.ahorro) }} en intereses
+                    {% if resultados.diferencia_meses > 0 %}
+                    y {{ resultados.diferencia_meses }} meses menos
+                    {% elif resultados.diferencia_meses < 0 %}
+                    (pero toma {{ -resultados.diferencia_meses }} meses más)
+                    {% endif %}
+                </span>
+            </div>
+            {% elif resultados.ahorro < 0 %}
+            <hr>
+            <div class="text-center">
+                <span class="badge bg-info comparison-badge">
+                    <i class="bi bi-info-circle"></i> El método Bola de Nieve te ahorra 
+                    ${{ "{:,.2f}".format(-resultados.ahorro) }} en intereses
+                    {% if resultados.diferencia_meses < 0 %}
+                    y {{ -resultados.diferencia_meses }} meses menos
+                    {% elif resultados.diferencia_meses > 0 %}
+                    (pero toma {{ resultados.diferencia_meses }} meses más)
+                    {% endif %}
+                </span>
+            </div>
+            {% else %}
+            <hr>
+            <div class="text-center">
+                <span class="badge bg-secondary comparison-badge">
+                    Ambos métodos tienen el mismo costo en intereses
+                </span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card strategy-card strategy-avalancha">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-arrow-down-circle"></i> Método Avalancha
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    <strong>Estrategia:</strong> Pagar primero la deuda con mayor tasa de interés.
+                    Minimiza el total de intereses pagados.
+                </p>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <div class="stat-card">
+                            <div class="text-muted small">Tiempo Total</div>
+                            <div class="h4 mb-0">{{ resultados.avalancha.meses }} meses</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-card">
+                            <div class="text-muted small">Total Intereses</div>
+                            <div class="h4 mb-0">${{ "{:,.2f}".format(resultados.avalancha.total_intereses) }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-light">
+                    <strong>Ventajas:</strong>
+                    <ul class="mb-0 small">
+                        <li>Ahorra más dinero en intereses</li>
+                        <li>Matemáticamente más eficiente</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <div class="card strategy-card strategy-bola-nieve">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-snow"></i> Método Bola de Nieve
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    <strong>Estrategia:</strong> Pagar primero la deuda más pequeña.
+                    Proporciona motivación psicológica al ver deudas eliminadas rápidamente.
+                </p>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <div class="stat-card">
+                            <div class="text-muted small">Tiempo Total</div>
+                            <div class="h4 mb-0">{{ resultados.bola_nieve.meses }} meses</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-card">
+                            <div class="text-muted small">Total Intereses</div>
+                            <div class="h4 mb-0">${{ "{:,.2f}".format(resultados.bola_nieve.total_intereses) }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-light">
+                    <strong>Ventajas:</strong>
+                    <ul class="mb-0 small">
+                        <li>Motivación psicológica</li>
+                        <li>Ver progreso más rápido</li>
+                        <li>Libera dinero más rápido</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-graph-up"></i> Proyección de Pagos (Primeros 12 Meses)</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Mes</th>
+                                <th class="text-end">Intereses Avalancha</th>
+                                <th class="text-end">Pago Total Avalancha</th>
+                                <th class="text-end">Intereses Bola Nieve</th>
+                                <th class="text-end">Pago Total Bola Nieve</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for i in range(1, 13) %}
+                            {% set mes_aval = resultados.avalancha.historial[i-1] if i <= resultados.avalancha.historial|length else None %}
+                            {% set mes_bola = resultados.bola_nieve.historial[i-1] if i <= resultados.bola_nieve.historial|length else None %}
+                            <tr>
+                                <td><strong>{{ i }}</strong></td>
+                                <td class="text-end">
+                                    {% if mes_aval %}
+                                    ${{ "{:,.2f}".format(mes_aval.total_intereses) }}
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    {% if mes_aval %}
+                                    ${{ "{:,.2f}".format(mes_aval.pago_total) }}
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    {% if mes_bola %}
+                                    ${{ "{:,.2f}".format(mes_bola.total_intereses) }}
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    {% if mes_bola %}
+                                    ${{ "{:,.2f}".format(mes_bola.pago_total) }}
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}
+

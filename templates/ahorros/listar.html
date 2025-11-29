@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block page_title %}Ahorros Programados{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Ahorros Programados</h2>
+    <div>
+        <a href="{{ url_for('ahorros.listar_ahorros', activos='true') }}" 
+           class="btn btn-outline-primary {% if activos %}active{% endif %}">
+            Activos
+        </a>
+        <a href="{{ url_for('ahorros.listar_ahorros', activos='false') }}" 
+           class="btn btn-outline-secondary {% if not activos %}active{% endif %}">
+            Inactivos
+        </a>
+        <a href="{{ url_for('ahorros.nuevo_ahorro') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nuevo Ahorro
+        </a>
+    </div>
+</div>
+
+{% if ahorros %}
+<div class="row">
+    {% for ahorro in ahorros %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title">{{ ahorro.titulo }}</h5>
+                    {% if ahorro.activo %}
+                    <span class="badge bg-success">Activo</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Inactivo</span>
+                    {% endif %}
+                </div>
+                {% if ahorro.descripcion %}
+                <p class="card-text text-muted">{{ ahorro.descripcion }}</p>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <p class="mb-1"><strong>Monto ({{ ahorro.frecuencia }}):</strong> ${{ "{:,.2f}".format(ahorro.monto) }}</p>
+                    <p class="mb-1"><strong>Frecuencia:</strong> <span class="badge bg-info">{{ ahorro.frecuencia.capitalize() }}</span></p>
+                    <p class="mb-1"><strong>Fecha Inicio:</strong> {{ ahorro.fecha_inicio.strftime('%d/%m/%Y') }}</p>
+                    {% if ahorro.fecha_fin %}
+                    <p class="mb-0"><strong>Fecha Fin:</strong> {{ ahorro.fecha_fin.strftime('%d/%m/%Y') }}</p>
+                    {% else %}
+                    <p class="mb-0 text-muted"><strong>Fecha Fin:</strong> Indefinido</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <div class="btn-group w-100" role="group">
+                    <form method="POST" action="{{ url_for('ahorros.toggle_ahorro', id=ahorro.id) }}" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-outline-{% if ahorro.activo %}warning{% else %}success{% endif %}">
+                            <i class="bi bi-{% if ahorro.activo %}pause{% else %}play{% endif %}"></i>
+                            {% if ahorro.activo %}Pausar{% else %}Activar{% endif %}
+                        </button>
+                    </form>
+                    <a href="{{ url_for('ahorros.editar_ahorro', id=ahorro.id) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-pencil"></i> Editar
+                    </a>
+                    <form method="POST" action="{{ url_for('ahorros.eliminar_ahorro', id=ahorro.id) }}" 
+                          class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar este ahorro?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-piggy-bank" style="font-size: 3rem; color: #ccc;"></i>
+        <p class="text-muted mt-3">
+            {% if activos %}
+            No hay ahorros activos
+            {% else %}
+            No hay ahorros inactivos
+            {% endif %}
+        </p>
+        {% if activos %}
+        <a href="{{ url_for('ahorros.nuevo_ahorro') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Crear Primer Ahorro
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+

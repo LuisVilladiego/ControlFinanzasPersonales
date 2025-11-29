@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block page_title %}Deudas Fijas{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Deudas Fijas</h2>
+    <div>
+        <a href="{{ url_for('deudas.listar_deudas', activas='true') }}" 
+           class="btn btn-outline-primary {% if activas %}active{% endif %}">
+            Activas
+        </a>
+        <a href="{{ url_for('deudas.listar_deudas', activas='false') }}" 
+           class="btn btn-outline-secondary {% if not activas %}active{% endif %}">
+            Inactivas
+        </a>
+        <a href="{{ url_for('deudas.nueva_deuda') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nueva Deuda
+        </a>
+    </div>
+</div>
+
+{% if deudas_con_info %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Descripción</th>
+                        <th>Monto</th>
+                        <th>Día de Pago</th>
+                        <th>Próxima Fecha</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in deudas_con_info %}
+                    {% set deuda = item.deuda %}
+                    {% set fecha_pago_mes = item.fecha_pago %}
+                    {% set dias_restantes = item.dias_restantes %}
+                    <tr class="{% if not deuda.pagada_este_mes and dias_restantes <= 2 %}table-warning{% elif deuda.pagada_este_mes %}table-success{% endif %}">
+                        <td><strong>{{ deuda.titulo }}</strong></td>
+                        <td>{{ deuda.descripcion or '-' }}</td>
+                        <td class="fw-bold">${{ "{:,.2f}".format(deuda.monto) }}</td>
+                        <td>Día {{ deuda.dia_pago }}</td>
+                        <td>
+                            {{ fecha_pago_mes.strftime('%d/%m/%Y') }}
+                            {% if dias_restantes <= 2 and not deuda.pagada_este_mes %}
+                                <span class="badge bg-warning">Faltan {{ dias_restantes }} días</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if deuda.pagada_este_mes %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle"></i> Pagada este mes
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger">Pendiente</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group" role="group">
+                                {% if not deuda.pagada_este_mes %}
+                                <form method="POST" action="{{ url_for('deudas.marcar_pagada', id=deuda.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-success" title="Marcar como pagada">
+                                        <i class="bi bi-check-circle"></i> Pagar
+                                    </button>
+                                </form>
+                                {% else %}
+                                <form method="POST" action="{{ url_for('deudas.desmarcar_pagada', id=deuda.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary" title="Desmarcar pago">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                                <a href="{{ url_for('deudas.editar_deuda', id=deuda.id) }}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('deudas.toggle_deuda', id=deuda.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-{% if deuda.activa %}warning{% else %}success{% endif %}">
+                                        <i class="bi bi-{% if deuda.activa %}pause{% else %}play{% endif %}"></i>
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('deudas.eliminar_deuda', id=deuda.id) }}" 
+                                      class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar esta deuda?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-credit-card" style="font-size: 3rem; color: #ccc;"></i>
+        <p class="text-muted mt-3">
+            {% if activas %}
+            No hay deudas activas
+            {% else %}
+            No hay deudas inactivas
+            {% endif %}
+        </p>
+        {% if activas %}
+        <a href="{{ url_for('deudas.nueva_deuda') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Crear Primera Deuda Fija
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+

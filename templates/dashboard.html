@@ -1,0 +1,495 @@
+{% extends "base.html" %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Estadísticas -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card primary h-100">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Ingresos del Mes
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            ${{ "{:,.2f}".format(ingresos_mes) }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-arrow-down-circle fa-2x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card danger h-100">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                            Egresos del Mes
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            ${{ "{:,.2f}".format(egresos_mes) }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-arrow-up-circle fa-2x text-danger"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card {% if balance_mes >= 0 %}success{% else %}warning{% endif %} h-100">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">
+                            Balance del Mes
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            ${{ "{:,.2f}".format(balance_mes) }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-wallet2 fa-2x {% if balance_mes >= 0 %}text-success{% else %}text-warning{% endif %}"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card info h-100">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Metas Activas
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ metas_activas|length }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-bullseye fa-2x text-info"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Gráfico de Ingresos vs Egresos -->
+    <div class="col-xl-8 col-lg-7">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">Ingresos vs Egresos (Últimos 6 Meses)</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="ingresosEgresosChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Gráfico de Categorías -->
+    <div class="col-xl-4 col-lg-5">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">Egresos por Categoría</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="categoriasChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Gráfico de Barras - Ingresos vs Egresos por Mes -->
+    <div class="col-xl-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">Comparativa Mensual - Ingresos vs Egresos</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="barrasChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Últimos Ingresos -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Últimos Ingresos</h6>
+                <a href="{{ url_for('transacciones.listar_ingresos') }}" class="btn btn-sm btn-primary">
+                    Ver Todos
+                </a>
+            </div>
+            <div class="card-body">
+                {% if ultimos_ingresos %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Descripción</th>
+                                <th>Categoría</th>
+                                <th class="text-end">Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ingreso in ultimos_ingresos %}
+                            <tr>
+                                <td>{{ ingreso.fecha.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ ingreso.descripcion }}</td>
+                                <td><span class="badge bg-primary">{{ ingreso.categoria }}</span></td>
+                                <td class="text-end text-success">${{ "{:,.2f}".format(ingreso.monto) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No hay ingresos registrados</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Últimos Egresos -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Últimos Egresos</h6>
+                <a href="{{ url_for('transacciones.listar_egresos') }}" class="btn btn-sm btn-primary">
+                    Ver Todos
+                </a>
+            </div>
+            <div class="card-body">
+                {% if ultimos_egresos %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Descripción</th>
+                                <th>Categoría</th>
+                                <th class="text-end">Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for egreso in ultimos_egresos %}
+                            <tr>
+                                <td>{{ egreso.fecha.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ egreso.descripcion }}</td>
+                                <td><span class="badge bg-danger">{{ egreso.categoria }}</span></td>
+                                <td class="text-end text-danger">${{ "{:,.2f}".format(egreso.monto) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No hay egresos registrados</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Metas Activas -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Metas Activas</h6>
+                <a href="{{ url_for('metas.listar_metas') }}" class="btn btn-sm btn-primary">
+                    Ver Todas
+                </a>
+            </div>
+            <div class="card-body">
+                {% if metas_activas %}
+                    {% for meta in metas_activas %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <strong>{{ meta.titulo }}</strong>
+                            <span>${{ "{:,.2f}".format(meta.monto_actual) }} / ${{ "{:,.2f}".format(meta.monto_objetivo) }}</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: {{ meta.porcentaje_completado() }}%"
+                                 aria-valuenow="{{ meta.porcentaje_completado() }}" 
+                                 aria-valuemin="0" aria-valuemax="100">
+                                {{ "%.1f"|format(meta.porcentaje_completado()) }}%
+                            </div>
+                        </div>
+                        <small class="text-muted">Fecha límite: {{ meta.fecha_limite.strftime('%d/%m/%Y') }}</small>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <p class="text-muted text-center">No hay metas activas</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recordatorios Pendientes -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Recordatorios Pendientes</h6>
+                <a href="{{ url_for('recordatorios.listar_recordatorios') }}" class="btn btn-sm btn-primary">
+                    Ver Todos
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recordatorios_pendientes %}
+                    {% for recordatorio in recordatorios_pendientes %}
+                    <div class="border-start border-3 border-warning ps-3 mb-3">
+                        <h6>{{ recordatorio.titulo }}</h6>
+                        <p class="mb-1 text-muted">{{ recordatorio.descripcion }}</p>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Fecha: {{ recordatorio.fecha_pago.strftime('%d/%m/%Y') }}</span>
+                            <strong class="text-warning">${{ "{:,.2f}".format(recordatorio.monto) }}</strong>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <p class="text-muted text-center">No hay recordatorios pendientes</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Deudas Fijas Pendientes -->
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-credit-card"></i> Deudas Fijas Pendientes
+                </h6>
+                <a href="{{ url_for('deudas.listar_deudas') }}" class="btn btn-sm btn-primary">
+                    Ver Todas
+                </a>
+            </div>
+            <div class="card-body">
+                {% if deudas_pendientes %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Deuda</th>
+                                <th>Monto</th>
+                                <th>Próxima Fecha</th>
+                                <th>Días Restantes</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in deudas_con_fecha %}
+                            <tr class="{% if item.dias_restantes <= 2 %}table-warning{% elif item.deuda.pagada_este_mes %}table-success{% endif %}">
+                                <td><strong>{{ item.deuda.titulo }}</strong></td>
+                                <td class="fw-bold">${{ "{:,.2f}".format(item.deuda.monto) }}</td>
+                                <td>{{ item.fecha_pago.strftime('%d/%m/%Y') }}</td>
+                                <td>
+                                    {% if item.dias_restantes <= 2 and not item.deuda.pagada_este_mes %}
+                                        <span class="badge bg-warning">{{ item.dias_restantes }} días</span>
+                                    {% elif item.deuda.pagada_este_mes %}
+                                        <span class="badge bg-success">Pagada</span>
+                                    {% else %}
+                                        {{ item.dias_restantes }} días
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.deuda.pagada_este_mes %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> Pagada
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Pendiente</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if not item.deuda.pagada_este_mes %}
+                                    <form method="POST" action="{{ url_for('deudas.marcar_pagada', id=item.deuda.id) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="bi bi-check-circle"></i> Marcar Pagada
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <form method="POST" action="{{ url_for('deudas.desmarcar_pagada', id=item.deuda.id) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-x-circle"></i> Desmarcar
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No hay deudas fijas pendientes</p>
+                <div class="text-center">
+                    <a href="{{ url_for('deudas.nueva_deuda') }}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-circle"></i> Crear Primera Deuda Fija
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if alertas_metas %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="bi bi-exclamation-triangle"></i> Alertas de Metas
+                </h6>
+            </div>
+            <div class="card-body">
+                {% for alerta in alertas_metas %}
+                <div class="alert alert-warning d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <strong>{{ alerta.meta.titulo }}</strong>
+                        <p class="mb-0">
+                            Faltan {{ alerta.dias_restantes }} días | 
+                            Progreso: {{ "%.1f"|format(alerta.porcentaje) }}% | 
+                            Faltante: ${{ "{:,.2f}".format(alerta.meta.monto_objetivo - alerta.meta.monto_actual) }}
+                        </p>
+                    </div>
+                    <a href="{{ url_for('metas.ver_meta', id=alerta.meta.id) }}" class="btn btn-sm btn-warning">
+                        Ver Meta
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Gráfico de Ingresos vs Egresos
+    const ctx1 = document.getElementById('ingresosEgresosChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: {{ meses_datos|tojson }},
+            datasets: [{
+                label: 'Ingresos',
+                data: {{ ingresos_grafico|tojson }},
+                borderColor: 'rgb(78, 115, 223)',
+                backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                tension: 0.4
+            }, {
+                label: 'Egresos',
+                data: {{ egresos_grafico|tojson }},
+                borderColor: 'rgb(231, 74, 59)',
+                backgroundColor: 'rgba(231, 74, 59, 0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Gráfico de Categorías
+    const ctx2 = document.getElementById('categoriasChart').getContext('2d');
+    const categoriasData = {{ egresos_categoria|map(attribute='categoria')|list|tojson }};
+    const categoriasMontos = {{ egresos_categoria|map(attribute='total')|map('float')|list|tojson }};
+    
+    new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: categoriasData,
+            datasets: [{
+                data: categoriasMontos,
+                backgroundColor: [
+                    'rgb(231, 74, 59)',
+                    'rgb(246, 194, 62)',
+                    'rgb(54, 185, 204)',
+                    'rgb(28, 200, 138)',
+                    'rgb(78, 115, 223)',
+                    'rgb(133, 135, 150)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+    
+    // Gráfico de Barras
+    const ctx3 = document.getElementById('barrasChart').getContext('2d');
+    new Chart(ctx3, {
+        type: 'bar',
+        data: {
+            labels: {{ meses_datos|tojson }},
+            datasets: [{
+                label: 'Ingresos',
+                data: {{ ingresos_grafico|tojson }},
+                backgroundColor: 'rgba(78, 115, 223, 0.8)',
+                borderColor: 'rgb(78, 115, 223)',
+                borderWidth: 1
+            }, {
+                label: 'Egresos',
+                data: {{ egresos_grafico|tojson }},
+                backgroundColor: 'rgba(231, 74, 59, 0.8)',
+                borderColor: 'rgb(231, 74, 59)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

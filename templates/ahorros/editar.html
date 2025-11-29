@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block page_title %}Editar Ahorro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-pencil"></i> Editar Ahorro Programado</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="titulo" class="form-label">Título *</label>
+                        <input type="text" class="form-control" id="titulo" name="titulo" 
+                               value="{{ ahorro.titulo }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcion" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="descripcion" name="descripcion" rows="3">{{ ahorro.descripcion or '' }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="monto" class="form-label">Monto *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" step="0.01" class="form-control" id="monto" name="monto" 
+                                   value="{{ ahorro.monto }}" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="frecuencia" class="form-label">Frecuencia *</label>
+                        <select class="form-select" id="frecuencia" name="frecuencia" required>
+                            <option value="diaria" {% if ahorro.frecuencia == 'diaria' %}selected{% endif %}>Diaria</option>
+                            <option value="semanal" {% if ahorro.frecuencia == 'semanal' %}selected{% endif %}>Semanal</option>
+                            <option value="mensual" {% if ahorro.frecuencia == 'mensual' %}selected{% endif %}>Mensual</option>
+                            <option value="anual" {% if ahorro.frecuencia == 'anual' %}selected{% endif %}>Anual</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fecha_inicio" class="form-label">Fecha de Inicio *</label>
+                        <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" 
+                               value="{{ ahorro.fecha_inicio.strftime('%Y-%m-%d') }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fecha_fin" class="form-label">Fecha de Fin (Opcional)</label>
+                        <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" 
+                               value="{% if ahorro.fecha_fin %}{{ ahorro.fecha_fin.strftime('%Y-%m-%d') }}{% endif %}">
+                        <small class="form-text text-muted">Deja en blanco si el ahorro es indefinido</small>
+                    </div>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('ahorros.listar_ahorros') }}" class="btn btn-secondary">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Actualizar Ahorro
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

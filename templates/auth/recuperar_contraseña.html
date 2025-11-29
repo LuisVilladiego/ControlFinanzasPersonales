@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Recuperar Contraseña - FINANZAS MALU{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card mt-5">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4">
+                        <i class="bi bi-wallet2 text-primary"></i> FINANZAS MALU
+                    </h2>
+                    <h4 class="text-center mb-4">Recuperar Contraseña</h4>
+                    
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                            <small class="form-text text-muted">Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 mb-3">
+                            <i class="bi bi-envelope"></i> Enviar Enlace de Recuperación
+                        </button>
+                    </form>
+                    
+                    <div class="text-center">
+                        <p class="mb-0">
+                            <a href="{{ url_for('auth.login') }}">Volver al inicio de sesión</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
